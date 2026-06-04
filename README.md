@@ -90,15 +90,17 @@ Formats and displays collected metrics in a continuously refreshing terminal das
 ```text
 COP Monitor
 
-Containers: 2
-Total Memory: 1.48 MB
-Total PIDs:   2
+Containers:   3
+Total Memory: 1.74 MB
+Total PIDs:   3
+Top CPU Consumer: mycontainer-2626 (99.70%)
 Refresh:      1s
 
 CONTAINER           MEM(MB)   LIMIT       MEM%    PIDS  CPU%    CPU(ms)   UPTIME    
 ------------------------------------------------------------------------------------
-mycontainer-5513    1.21      100 MB      1.2%    1     0.12%   2034      4m 12s    
-mycontainer-5539    0.27      Unlimited   -       1     0.05%   968       1m 22s    
+mycontainer-2626    0.26      Unlimited   -       1     99.70%  6620      9m 6s     
+mycontainer-2062    1.21      Unlimited   -       1     0.00%   2         12m 12s   
+mycontainer-2417    0.27      100 MB      0.3%    1     0.00%   1         10m 12s   
 ```
 
 ## Future Improvements

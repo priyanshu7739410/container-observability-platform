@@ -22,9 +22,15 @@ static std::string format_uptime(long seconds)
 
 void print_table(const std::vector<ContainerMetrics>& metrics)
 {
-    // 1. Host Summary
+    // 1. Sort by cpu_percent descending first to identify Top CPU Consumer
+    std::vector<ContainerMetrics> sorted_metrics = metrics;
+    std::sort(sorted_metrics.begin(), sorted_metrics.end(), [](const ContainerMetrics& a, const ContainerMetrics& b) {
+        return a.cpu_percent > b.cpu_percent;
+    });
+
+    // 2. Host Summary
     std::cout << "COP Monitor\n\n";
-    std::cout << "Containers: " << metrics.size() << "\n";
+    std::cout << "Containers:   " << metrics.size() << "\n";
     
     double total_mem_mb = 0.0;
     long total_pids = 0;
@@ -35,13 +41,17 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
     }
     std::cout << "Total Memory: " << total_mem_mb << " MB\n";
     std::cout << "Total PIDs:   " << total_pids << "\n";
-    std::cout << "Refresh:      1s\n\n";
 
-    // 2. Sort by memory_current descending (explicit ranking of resource consumers)
-    std::vector<ContainerMetrics> sorted_metrics = metrics;
-    std::sort(sorted_metrics.begin(), sorted_metrics.end(), [](const ContainerMetrics& a, const ContainerMetrics& b) {
-        return a.memory_current > b.memory_current;
-    });
+    if (!sorted_metrics.empty())
+    {
+        std::cout << "Top CPU Consumer: " << sorted_metrics[0].id 
+                  << " (" << std::fixed << std::setprecision(2) << sorted_metrics[0].cpu_percent << "%)\n";
+    }
+    else
+    {
+        std::cout << "Top CPU Consumer: None\n";
+    }
+    std::cout << "Refresh:      1s\n\n";
 
     // 3. Print table header
     std::cout << std::left
@@ -62,14 +72,14 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
     {
         std::string limit_display;
         std::string mem_percent_display = "-";
-        std::string color_code = "";
-        bool has_color = false;
+        std::string mem_color_code = "";
+        bool has_mem_color = false;
 
         if (m.memory_limit == "max" || m.memory_limit.empty())
         {
             limit_display = "Unlimited";
-            color_code = "\033[32m"; // Green for unlimited
-            has_color = true;
+            mem_color_code = "\033[32m"; // Green
+            has_mem_color = true;
         }
         else
         {
@@ -85,18 +95,18 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
 
                     if (pct > 80.0)
                     {
-                        color_code = "\033[31m"; // Red for critical >80%
-                        has_color = true;
+                        mem_color_code = "\033[31m"; // Red
+                        has_mem_color = true;
                     }
                     else if (pct > 50.0)
                     {
-                        color_code = "\033[33m"; // Yellow for warning >50%
-                        has_color = true;
+                        mem_color_code = "\033[33m"; // Yellow
+                        has_mem_color = true;
                     }
                     else
                     {
-                        color_code = "\033[32m"; // Green for normal <=50%
-                        has_color = true;
+                        mem_color_code = "\033[32m"; // Green
+                        has_mem_color = true;
                     }
                 }
                 limit_display = std::to_string(static_cast<int>(bytes_to_mb(limit_bytes))) + " MB";
@@ -114,6 +124,14 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
             cpu_percent_str = ss.str();
         }
 
+        std::string cpu_color_code = "";
+        if (m.cpu_percent > 80.0)
+            cpu_color_code = "\033[31m"; // Red
+        else if (m.cpu_percent > 50.0)
+            cpu_color_code = "\033[33m"; // Yellow
+        else
+            cpu_color_code = "\033[32m"; // Green
+
         long cpu_ms = m.cpu_usage_usec / 1000;
 
         std::cout << std::left
@@ -121,15 +139,19 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
                   << std::setw(10) << bytes_to_mb(m.memory_current)
                   << std::setw(12) << limit_display;
 
-        if (has_color)
-            std::cout << color_code;
+        if (has_mem_color)
+            std::cout << mem_color_code;
         std::cout << std::setw(8) << mem_percent_display;
-        if (has_color)
+        if (has_mem_color)
             std::cout << "\033[0m";
 
-        std::cout << std::setw(6)  << m.pids
-                  << std::setw(8)  << cpu_percent_str
-                  << std::setw(10) << cpu_ms
+        std::cout << std::setw(6) << m.pids;
+
+        std::cout << cpu_color_code;
+        std::cout << std::setw(8) << cpu_percent_str;
+        std::cout << "\033[0m";
+
+        std::cout << std::setw(10) << cpu_ms
                   << std::setw(10) << format_uptime(m.uptime_seconds)
                   << std::endl;
     }
