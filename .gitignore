@@ -4,3 +4,7 @@ cgroup-top
 run.md
 runmd
 INTERVIEW_MASTER_GUIDE.md
+collector/container_explanation.md
+collector/metrics_explanation.md
+collector/display_explanation.md
+collector/main_explanation.md
