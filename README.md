@@ -91,16 +91,16 @@ Formats and displays collected metrics in a continuously refreshing terminal das
 COP Monitor
 
 Containers:   3
-Total Memory: 1.74 MB
+Total Memory: 1.93 MB
 Total PIDs:   3
-Top CPU Consumer: mycontainer-2626 (99.70%)
+Top CPU Consumer: mycontainer-2626 (99.97%)
 Refresh:      1s
 
 CONTAINER           MEM(MB)   LIMIT       MEM%    PIDS  CPU%    CPU(ms)   UPTIME    
 ------------------------------------------------------------------------------------
-mycontainer-2626    0.26      Unlimited   -       1     99.70%  6620      9m 6s     
-mycontainer-2062    1.21      Unlimited   -       1     0.00%   2         12m 12s   
-mycontainer-2417    0.27      100 MB      0.3%    1     0.00%   1         10m 12s   
+mycontainer-2626    0.50      Unlimited   -       1     99.97%  97037     14m 32s   
+mycontainer-2062    1.16      Unlimited   -       1     0.00%   2         17m 39s   
+mycontainer-2417    0.27      100 MB      0.3%    1     0.00%   1         15m 38s   
 ```
 
 ## Future Improvements
