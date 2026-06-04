@@ -2,3 +2,5 @@ cgroup-top
 *.o
 *~
 run.md
+runmd
+INTERVIEW_MASTER_GUIDE.md
