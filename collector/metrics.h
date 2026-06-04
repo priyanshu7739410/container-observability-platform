@@ -10,6 +10,7 @@ struct ContainerMetrics
     std::string memory_limit;
     long pids;
     long cpu_usage_usec;
+    double cpu_percent; // Calculated active CPU usage percentage
 };
 
 ContainerMetrics collect_metrics(const std::string& container_id);

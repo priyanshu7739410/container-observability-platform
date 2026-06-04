@@ -1,8 +1,18 @@
 #include "metrics.h"
 #include <fstream>
 #include <filesystem>
+#include <unordered_map>
+#include <chrono>
 
 namespace fs = std::filesystem;
+
+struct CpuSample
+{
+    long usage_usec;
+    std::chrono::steady_clock::time_point timestamp;
+};
+
+static std::unordered_map<std::string, CpuSample> g_cpu_history;
 
 static long read_metric(const std::string& path)
 {
@@ -43,6 +53,22 @@ ContainerMetrics collect_metrics(const std::string& container_id)
     metrics.memory_limit = read_text((base_path / "memory.max").string());
     metrics.pids = read_metric((base_path / "pids.current").string());
     metrics.cpu_usage_usec = read_cpu_usage((base_path / "cpu.stat").string());
+
+    auto now = std::chrono::steady_clock::now();
+    metrics.cpu_percent = 0.0;
+
+    auto it = g_cpu_history.find(container_id);
+    if (it != g_cpu_history.end())
+    {
+        long delta_cpu = metrics.cpu_usage_usec - it->second.usage_usec;
+        auto delta_time = std::chrono::duration_cast<std::chrono::microseconds>(now - it->second.timestamp).count();
+        if (delta_time > 0 && delta_cpu >= 0)
+        {
+            metrics.cpu_percent = (static_cast<double>(delta_cpu) / delta_time) * 100.0;
+        }
+    }
+
+    g_cpu_history[container_id] = CpuSample{metrics.cpu_usage_usec, now};
 
     return metrics;
 }

@@ -14,13 +14,13 @@ This mirrors the architecture used by modern observability systems, where lightw
 
 ## Features
 
-* Automatic container discovery through Cgroups v2
-* Real-time memory monitoring
-* Memory limit tracking
-* Process count monitoring
-* CPU usage collection
-* Live terminal dashboard with periodic refresh
-* Modular architecture separating discovery, metrics collection, and presentation layers
+* **Automatic container discovery** through Cgroups v2 scanning
+* **Real-time memory monitoring** and active sorting (descending by memory consumption)
+* **Memory utilization % calculation** for limited containers
+* **CPU utilization % monitoring** using stateful delta calculations
+* **Process count monitoring** (`pids.current`)
+* **Host Summary dashboard** (Total containers, memory, active PIDs) with a live 1s refresh
+* **Modular architecture** separating discovery, metrics collection, and presentation layers
 
 ## System Architecture
 
@@ -31,13 +31,13 @@ Custom Container Runtime
    Linux Cgroups v2
            │
            ▼
-Container Discovery Layer
+Container Discovery Layer (container.cpp)
            │
            ▼
- Metrics Collection Layer
+ Metrics Collection Layer (metrics.cpp) — Stateful CPU delta tracking
            │
            ▼
- Terminal Dashboard
+ Terminal Dashboard (display.cpp) — Real-time memory sorting
 ```
 
 ## Project Structure
@@ -59,12 +59,12 @@ Responsible for identifying active containers by scanning Cgroup directories.
 
 ### Metrics Layer
 
-Collects runtime statistics directly from Linux kernel control files:
+Collects runtime statistics directly from Linux kernel control files, calculating CPU and memory metrics:
 
 * memory.current
-* memory.max
+* memory.max (Memory % limit calculations)
 * pids.current
-* cpu.stat
+* cpu.stat (Stateful CPU % delta calculations)
 
 ### Presentation Layer
 
@@ -81,27 +81,31 @@ Formats and displays collected metrics in a continuously refreshing terminal das
 ## Example Output
 
 ```text
-CONTAINER           MEM(MB)     LIMIT        PIDS     CPU(usec)
+COP Monitor
 
-mycontainer-5539    0.27        Unlimited    1        968
-mycontainer-5513    1.21        Unlimited    1        2034
+Containers: 2
+Total Memory: 1.48 MB
+Total PIDs:   2
+Refresh:      1s
+
+CONTAINER           MEM(MB)     LIMIT          MEM%      PIDS    CPU%    
+---------------------------------------------------------------------------
+mycontainer-5513    1.21        100 MB         1.2%      1       0.12%
+mycontainer-5539    0.27        Unlimited      -         1       0.05%
 ```
 
 ## Future Improvements
 
-* CPU utilization percentages
-* Memory utilization percentages
-* Container ranking by resource consumption
-* Historical metric storage
-* REST API layer
-* Web dashboard
+* Historical metric storage and logging
+* REST API layer for metrics exporting
+* Interactive curses/ncurses dashboard
 * Alerting and threshold-based monitoring
 
 ## Key Learning Outcomes
 
 * Linux container internals
 * Cgroups v2 resource management
-* Systems programming in C++
+* Systems programming in C++ (CPU & Memory delta tracking)
 * Observability architecture
 * Runtime metric collection
 * Modular software design
