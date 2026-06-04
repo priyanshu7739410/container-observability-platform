@@ -1,4 +1,4 @@
-cat > .gitignore << EOF
-mc-top
+cgroup-top
 *.o
-EOFmc-top
+*~
+run.md
