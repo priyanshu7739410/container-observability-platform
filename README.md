@@ -16,9 +16,11 @@ This mirrors the architecture used by modern observability systems, where lightw
 
 * **Automatic container discovery** through Cgroups v2 scanning
 * **Real-time memory monitoring** and active sorting (descending by memory consumption)
-* **Memory utilization % calculation** for limited containers
+* **Memory utilization % calculation** with dynamic ANSI colors (Green <= 50%, Yellow > 50%, Red > 80%)
 * **CPU utilization % monitoring** using stateful delta calculations
+* **Process uptime tracking** calculated directly from `/proc/<pid>/stat` (relative to system uptime)
 * **Process count monitoring** (`pids.current`)
+* **First line of `cpu.stat`** output directly as a monitoring column
 * **Host Summary dashboard** (Total containers, memory, active PIDs) with a live 1s refresh
 * **Modular architecture** separating discovery, metrics collection, and presentation layers
 
@@ -34,10 +36,10 @@ Custom Container Runtime
 Container Discovery Layer (container.cpp)
            │
            ▼
- Metrics Collection Layer (metrics.cpp) — Stateful CPU delta tracking
+ Metrics Collection Layer (metrics.cpp) — Stateful CPU delta & Uptime tracking
            │
            ▼
- Terminal Dashboard (display.cpp) — Real-time memory sorting
+ Terminal Dashboard (display.cpp) — Real-time memory sorting & ANSI colors
 ```
 
 ## Project Structure
@@ -59,16 +61,17 @@ Responsible for identifying active containers by scanning Cgroup directories.
 
 ### Metrics Layer
 
-Collects runtime statistics directly from Linux kernel control files, calculating CPU and memory metrics:
+Collects runtime statistics directly from Linux kernel control files, calculating CPU, uptime, and memory metrics:
 
 * memory.current
 * memory.max (Memory % limit calculations)
 * pids.current
 * cpu.stat (Stateful CPU % delta calculations)
+* cgroup.procs & /proc/<pid>/stat (Uptime calculations)
 
 ### Presentation Layer
 
-Formats and displays collected metrics in a continuously refreshing terminal dashboard.
+Formats and displays collected metrics in a continuously refreshing terminal dashboard with custom ANSI threshold coloring.
 
 ## Technologies
 
@@ -88,10 +91,10 @@ Total Memory: 1.48 MB
 Total PIDs:   2
 Refresh:      1s
 
-CONTAINER           MEM(MB)     LIMIT          MEM%      PIDS    CPU%    
----------------------------------------------------------------------------
-mycontainer-5513    1.21        100 MB         1.2%      1       0.12%
-mycontainer-5539    0.27        Unlimited      -         1       0.05%
+CONTAINER           MEM(MB)   LIMIT       MEM%    PIDS  CPU%    UPTIME    CPU_STAT                 
+---------------------------------------------------------------------------------------------------
+mycontainer-5513    1.21      100 MB      1.2%    1     0.12%   4m 12s    usage_usec 2034000
+mycontainer-5539    0.27      Unlimited   -       1     0.05%   1m 22s    usage_usec 968000
 ```
 
 ## Future Improvements

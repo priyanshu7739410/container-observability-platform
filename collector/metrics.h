@@ -11,6 +11,8 @@ struct ContainerMetrics
     long pids;
     long cpu_usage_usec;
     double cpu_percent; // Calculated active CPU usage percentage
+    long uptime_seconds; // Uptime of the container process
+    std::string cpu_stat_first_line; // First line of cpu.stat
 };
 
 ContainerMetrics collect_metrics(const std::string& container_id);
