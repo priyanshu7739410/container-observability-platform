@@ -37,7 +37,7 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
     std::cout << "Total PIDs:   " << total_pids << "\n";
     std::cout << "Refresh:      1s\n\n";
 
-    // 2. Sort by memory_current descending
+    // 2. Sort by memory_current descending (explicit ranking of resource consumers)
     std::vector<ContainerMetrics> sorted_metrics = metrics;
     std::sort(sorted_metrics.begin(), sorted_metrics.end(), [](const ContainerMetrics& a, const ContainerMetrics& b) {
         return a.memory_current > b.memory_current;
@@ -51,11 +51,11 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
               << std::setw(8)  << "MEM%"
               << std::setw(6)  << "PIDS"
               << std::setw(8)  << "CPU%"
+              << std::setw(10) << "CPU(ms)"
               << std::setw(10) << "UPTIME"
-              << std::setw(25) << "CPU_STAT"
               << std::endl;
 
-    std::cout << std::string(99, '-') << std::endl;
+    std::cout << std::string(84, '-') << std::endl;
 
     // 4. Print rows
     for (const auto& m : sorted_metrics)
@@ -68,7 +68,7 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
         if (m.memory_limit == "max" || m.memory_limit.empty())
         {
             limit_display = "Unlimited";
-            color_code = "\033[32m"; // Green
+            color_code = "\033[32m"; // Green for unlimited
             has_color = true;
         }
         else
@@ -85,17 +85,17 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
 
                     if (pct > 80.0)
                     {
-                        color_code = "\033[31m"; // Red
+                        color_code = "\033[31m"; // Red for critical >80%
                         has_color = true;
                     }
                     else if (pct > 50.0)
                     {
-                        color_code = "\033[33m"; // Yellow
+                        color_code = "\033[33m"; // Yellow for warning >50%
                         has_color = true;
                     }
                     else
                     {
-                        color_code = "\033[32m"; // Green
+                        color_code = "\033[32m"; // Green for normal <=50%
                         has_color = true;
                     }
                 }
@@ -114,6 +114,8 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
             cpu_percent_str = ss.str();
         }
 
+        long cpu_ms = m.cpu_usage_usec / 1000;
+
         std::cout << std::left
                   << std::setw(20) << m.id
                   << std::setw(10) << bytes_to_mb(m.memory_current)
@@ -127,8 +129,8 @@ void print_table(const std::vector<ContainerMetrics>& metrics)
 
         std::cout << std::setw(6)  << m.pids
                   << std::setw(8)  << cpu_percent_str
+                  << std::setw(10) << cpu_ms
                   << std::setw(10) << format_uptime(m.uptime_seconds)
-                  << std::setw(25) << m.cpu_stat_first_line
                   << std::endl;
     }
 }

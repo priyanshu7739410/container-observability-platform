@@ -12,6 +12,10 @@ Rather than relying on external monitoring tools, I built a dedicated observabil
 
 This mirrors the architecture used by modern observability systems, where lightweight agents collect kernel-level metrics and expose them to monitoring dashboards.
 
+## Dashboard
+
+![COP Dashboard](docs/dashboard.png)
+
 ## Features
 
 * **Automatic container discovery** through Cgroups v2 scanning
@@ -20,7 +24,7 @@ This mirrors the architecture used by modern observability systems, where lightw
 * **CPU utilization % monitoring** using stateful delta calculations
 * **Process uptime tracking** calculated directly from `/proc/<pid>/stat` (relative to system uptime)
 * **Process count monitoring** (`pids.current`)
-* **First line of `cpu.stat`** output directly as a monitoring column
+* **Cumulative CPU usage (ms)** displayed in a separate stats column
 * **Host Summary dashboard** (Total containers, memory, active PIDs) with a live 1s refresh
 * **Modular architecture** separating discovery, metrics collection, and presentation layers
 
@@ -91,10 +95,10 @@ Total Memory: 1.48 MB
 Total PIDs:   2
 Refresh:      1s
 
-CONTAINER           MEM(MB)   LIMIT       MEM%    PIDS  CPU%    UPTIME    CPU_STAT                 
----------------------------------------------------------------------------------------------------
-mycontainer-5513    1.21      100 MB      1.2%    1     0.12%   4m 12s    usage_usec 2034000
-mycontainer-5539    0.27      Unlimited   -       1     0.05%   1m 22s    usage_usec 968000
+CONTAINER           MEM(MB)   LIMIT       MEM%    PIDS  CPU%    CPU(ms)   UPTIME    
+------------------------------------------------------------------------------------
+mycontainer-5513    1.21      100 MB      1.2%    1     0.12%   2034      4m 12s    
+mycontainer-5539    0.27      Unlimited   -       1     0.05%   968       1m 22s    
 ```
 
 ## Future Improvements
